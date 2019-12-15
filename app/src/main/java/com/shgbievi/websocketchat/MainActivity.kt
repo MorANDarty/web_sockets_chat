@@ -1,8 +1,10 @@
 package com.shgbievi.websocketchat
 
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
+import androidx.recyclerview.widget.LinearLayoutManager
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.activity_main.*
@@ -20,14 +22,23 @@ class MainActivity : AppCompatActivity(), ChatView {
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe({
-                if(it.status == "ok"){
+                if (it.status == "ok") {
                     startChat()
-                    Toast.makeText(this, "Success auth",Toast.LENGTH_LONG).show()
+                    Toast.makeText(this, "Success auth", Toast.LENGTH_LONG).show()
                 }
-            },{
+                Log.d("CHAT", it.status)
+            }, {
                 Toast.makeText(this, it.message, Toast.LENGTH_LONG).show()
+                Log.d("CHAT", it.message)
             })
-            .apply {  }
+            .apply { }
+
+        btn_send.setOnClickListener {
+            if(et_msg.text.isNotEmpty()) {
+                socketManager.sendMsg(et_msg.text.toString())
+                et_msg.setText("")
+            }
+        }
     }
 
     private fun startChat() {
@@ -36,6 +47,7 @@ class MainActivity : AppCompatActivity(), ChatView {
     }
 
     private fun initRecycler() {
+        rv_msg.layoutManager = LinearLayoutManager(this)
         adapter = MessagesAdapter(arrayListOf())
         adapter?.setHasStableIds(true)
         rv_msg.adapter = adapter
@@ -50,6 +62,6 @@ class MainActivity : AppCompatActivity(), ChatView {
     }
 
     override fun onGetMsg(msg: String) {
-        adapter?.addMessage(Message(1,msg, "MorANDarty"))
+        adapter?.addMessage(Message(1, msg, "MorANDarty"))
     }
 }
